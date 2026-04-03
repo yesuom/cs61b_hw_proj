@@ -8,7 +8,7 @@ public class Particle {
     public int lifespan;
 
     public static final int PLANT_LIFESPAN = 150;
-    public static final int FLOWER_LIFESPAN = 75;
+    public static final int FLOWER_LIFESPAN = 120;
     public static final int FIRE_LIFESPAN = 10;
     public static final Map<ParticleFlavor, Integer> LIFESPANS =
             Map.of(ParticleFlavor.FLOWER, FLOWER_LIFESPAN,
@@ -90,6 +90,9 @@ public class Particle {
         Particle p_left = neighbors.get(Direction.LEFT);
         Particle p_right = neighbors.get(Direction.RIGHT);
         Particle p_up = neighbors.get(Direction.UP);
+        Particle p_down = neighbors.get(Direction.DOWN);
+        if (p_down.flavor == ParticleFlavor.SAND) rand = 3; // sand not grow plants
+        if (p_down.flavor == ParticleFlavor.FOUNTAIN || p_down.flavor == ParticleFlavor.WATER) rand = StdRandom.uniformInt(5);
         if (rand == 0 & p_left.flavor == ParticleFlavor.EMPTY) {
             p_left.flavor = flavor;
             p_left.lifespan = LIFESPANS.get(flavor);
@@ -101,6 +104,17 @@ public class Particle {
         if (rand == 2 & p_up.flavor == ParticleFlavor.EMPTY) {
             p_up.flavor = flavor;
             p_up.lifespan = LIFESPANS.get(flavor);
+        }
+    }
+
+    public void crowded(Map<Direction, Particle> neighbors) {
+        int rand = StdRandom.uniformInt(10);
+        Particle p_left = neighbors.get(Direction.LEFT);
+        Particle p_right = neighbors.get(Direction.RIGHT);
+        Particle p_up = neighbors.get(Direction.UP);
+        Particle p_down = neighbors.get(Direction.DOWN);
+        if (p_left.flavor == flavor & p_right.flavor == flavor & p_up.flavor == flavor & p_down.flavor == flavor) {
+            lifespan = lifespan * 99 / 100;
         }
     }
 
@@ -118,17 +132,17 @@ public class Particle {
                 p_up.flavor = ParticleFlavor.FIRE;
                 p_up.lifespan = LIFESPANS.get(ParticleFlavor.FIRE);
             }
-        } if (rand1 < 4) {
+        } if (rand1 < 1) {
             if (p_down.flavor == ParticleFlavor.FLOWER || p_down.flavor == ParticleFlavor.PLANT) {
                 p_down.flavor = ParticleFlavor.FIRE;
                 p_down.lifespan = LIFESPANS.get(ParticleFlavor.FIRE);
             }
-        } if (rand2 < 4) {
+        } if (rand2 < 2) {
             if (p_right.flavor == ParticleFlavor.FLOWER || p_right.flavor == ParticleFlavor.PLANT) {
                 p_right.flavor = ParticleFlavor.FIRE;
                 p_right.lifespan = LIFESPANS.get(ParticleFlavor.FIRE);
             }
-        } if (rand3 < 4) {
+        } if (rand3 < 2) {
             if (p_left.flavor == ParticleFlavor.FLOWER || p_left.flavor == ParticleFlavor.PLANT) {
                 p_left.flavor = ParticleFlavor.FIRE;
                 p_left.lifespan = LIFESPANS.get(ParticleFlavor.FIRE);
@@ -145,6 +159,7 @@ public class Particle {
             flow(neighbors);
         } if (flavor == ParticleFlavor.PLANT || flavor == ParticleFlavor.FLOWER) {
             grow(neighbors);
+            crowded(neighbors);
         } if (flavor == ParticleFlavor.FIRE) {
             burn(neighbors);
         }
